@@ -6,7 +6,9 @@ const cleanupExistingMemberRoles = async (member) => {
   const rolesToRemove = member.roles.cache.filter((role) => role.name in roles);
 
   for (const role of rolesToRemove) {
-    await member.roles.remove(role);
+    if (role.name !== 'lol-elo-bot-approver') {
+      await member.roles.remove(role);
+    }
   }
 };
 

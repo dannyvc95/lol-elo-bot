@@ -1,12 +1,46 @@
 {
-  "IRON": "Iron",
-  "BRONZE": "Bronze",
-  "SILVER": "Silver",
-  "GOLD": "Gold",
-  "PLATINUM": "Platinum",
-  "EMERALD": "Emerald",
-  "DIAMOND": "Diamond",
-  "MASTER": "Master",
-  "GRANDMASTER": "Grandmaster",
-  "CHALLENGER": "Challenger"
+  "IRON": {
+    "name": "Iron",
+    "color": "#4A4A4B"
+  },
+  "BRONZE": {
+    "name": "Bronze",
+    "color": "#A0522D"
+  },
+  "SILVER": {
+    "name": "Silver",
+    "color": "#C0C0C0"
+  },
+  "GOLD": {
+    "name": "Gold",
+    "color": "#FFD700"
+  },
+  "PLATINUM": {
+    "name": "Platinum",
+    "color": "#1ECECE"
+  },
+  "EMERALD": {
+    "name": "Emerald",
+    "color": "#40C040"
+  },
+  "DIAMOND": {
+    "name": "Diamond",
+    "color": "#4EA8DE"
+  },
+  "MASTER": {
+    "name": "Master",
+    "color": "#9A65C9"
+  },
+  "GRANDMASTER": {
+    "name": "Grandmaster",
+    "color": "#E34234"
+  },
+  "CHALLENGER": {
+    "name": "Challenger",
+    "color": "#80FFFF"
+  },
+  "lol-elo-bot-approver": {
+    "name": "LoL ELO Bot Approver",
+    "color": "#FFFFFF"
+  }
 }
