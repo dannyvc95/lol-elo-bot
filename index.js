@@ -4,6 +4,9 @@ const { getSummonerTierRankBySummonerName } = require('./services/riotApiService
 const { cleanupExistingMemberRoles } = require('./utils');
 const roles = require('./roles.json');
 const { handleInitCommand } = require('./services/lolEloBotService');
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
 
 const client = new Client({
   intents: [
@@ -131,5 +134,11 @@ client.on('interactionCreate', async (interactionCreateEvent) => {
   temporalMember = null;
   temporalRole = null;
 });
+
+app.get('/', (req, res) => {
+  res.send('lol-elo-bot')
+});
+
+app.listen(port, () => console.log('Server is up'));
 
 client.login(process.env.DISCORD_BOT_TOKEN);
