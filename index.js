@@ -139,6 +139,11 @@ app.get('/', (req, res) => {
   res.send('lol-elo-bot')
 });
 
+app.get('/login', async (req, res) => {
+  await client.login(process.env.DISCORD_BOT_TOKEN);
+  res.send('bot login done');
+});
+
 app.listen(port, () => console.log('Server is up'));
 
 client.login(process.env.DISCORD_BOT_TOKEN);
