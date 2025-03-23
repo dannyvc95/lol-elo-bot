@@ -1,8 +1,8 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, MessageFlags } = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, MessageFlags, EmbedBuilder } = require('discord.js');
 const { getSummonerTierRankBySummonerName } = require('./services/riotApiService');
 const { cleanupExistingMemberRoles } = require('./utils');
-const roles = require('./roles');
+const roles = require('./roles.json');
 const { handleInitCommand } = require('./services/lolEloBotService');
 
 const client = new Client({
@@ -23,7 +23,7 @@ client.once('ready', () => {
 
   // Create local guilds database
   client.guilds.cache.forEach((guild) => {
-    guilds[guild.id] = {name: guild.name, roles: guild.roles.cache.map((role) => role.name)};
+    guilds[guild.id] = { name: guild.name, roles: guild.roles.cache.map((role) => role.name) };
   });
 
   console.log('lol-elo-bot is ready!');
@@ -55,21 +55,29 @@ client.on('messageCreate', async (messageCreateEvent) => {
         const summonerTierRanks = await getSummonerTierRankBySummonerName(summonerName);
 
         if (summonerTierRanks) {
-          messageCreateEvent.channel.send(`Summoner name: ${summonerName}`);
-          messageCreateEvent.channel.send(`SoloQ: ${summonerTierRanks.soloq.tier} ${summonerTierRanks.soloq.rank}`);
-          messageCreateEvent.channel.send(`FlexQ: ${summonerTierRanks.flexq.tier} ${summonerTierRanks.flexq.rank}`);
+          const embed = new EmbedBuilder()
+            .setTitle(`Hi ${member.displayName}, this is your rank...`)
+            .setDescription(`\#\#\n${summonerName}\n`)
+            .setFields([
+              { name: 'Ranked Solo/Duo', value: `${summonerTierRanks.soloq.tier} ${summonerTierRanks.soloq.rank}`, inline: true },
+              { name: 'Ranked Flex', value: `${summonerTierRanks.flexq.tier} ${summonerTierRanks.flexq.rank}`, inline: true },
+            ])
+            .setColor(roles[summonerTierRanks.soloq.tier]?.color)
+            .setImage(`https://opgg-static.akamaized.net/images/medals_new/${summonerTierRanks.soloq.tier?.toLowerCase()?.trim()}.png?image=q_auto:good,f_webp,w_250`);
+          await messageCreateEvent.channel.send({ embeds: [embed] });
 
           const row = new ActionRowBuilder()
-        .addComponents(new ButtonBuilder().setCustomId('approve').setLabel('Approve').setStyle('Success'))
-        .addComponents(new ButtonBuilder().setCustomId('reject').setLabel('Reject').setStyle('Danger'));
-        const temporalMessage = await messageCreateEvent.channel.send({ content: 'Please approve or reject the ELO request', components: [row] });
-        messageCreateEvent.client.temporalMessage = temporalMessage;
+            .addComponents(new ButtonBuilder().setCustomId('approve').setLabel('Approve').setStyle('Success'))
+            .addComponents(new ButtonBuilder().setCustomId('reject').setLabel('Reject').setStyle('Danger'));
+
+          const temporalMessage = await messageCreateEvent.channel.send({ embeds: [new EmbedBuilder().setTitle('lol-elo-bot role update').setDescription(`**${member.displayName}** wants to have the **${roles[summonerTierRanks.soloq.tier]?.name}** role.\nDo you approve? (only for approvers)`)], components: [row] });
+          messageCreateEvent.client.temporalMessage = temporalMessage;
 
 
           // Get the role from the server based on the tier/rank information
           const role = messageCreateEvent.guild.roles.cache.find((role) => role.name === summonerTierRanks.soloq.tier);
 
-          
+
 
           if (!role) {
             return messageCreateEvent.channel.send('Role does not exist');
@@ -78,13 +86,15 @@ client.on('messageCreate', async (messageCreateEvent) => {
           temporalMember = member;
           temporalRole = role;
 
-          
+
           return;
 
           //return messageCreateEvent.channel.send(`You have been assigned to ${summonerTierRanks.soloq.tier}`);
+        } else {
+          return messageCreateEvent.channel.send(`**${summonerName}** is unranked or does not exist :skull:`); 
         }
       }
-    } else if (messageCreateEvent.content === '!init') {
+    } else if (messageCreateEvent.content === '!lol-elo-bot-init') {
       await handleInitCommand(messageCreateEvent, guilds);
     }
   } catch (error) {
@@ -98,6 +108,10 @@ client.on('interactionCreate', async (interactionCreateEvent) => {
 
   if (!interactionCreateEvent.member.roles.cache.some((role) => role.name === 'lol-elo-bot-approver')) {
     return interactionCreateEvent.reply({ content: '❌ Only members with the role lol-elo-bot-approver are allowed to approve or reject this request', flags: [MessageFlags.Ephemeral] });
+  }
+
+  if (temporalMember === null || temporalRole === null) {
+    return interactionCreateEvent.reply({ content: '❌ The request is not longer available', flags: [MessageFlags.Ephemeral] });
   }
 
   if (interactionCreateEvent.customId === 'approve') {
